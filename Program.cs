@@ -2,6 +2,7 @@ using LoncotesLibrary.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
+using LoncotesLibrary.Models.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,31 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.MapGet("/api/materials", (LoncotesLibraryDbContext db) => 
+{
+    return db.Materials
+    .Where(material => material.OutOfCirculationSince == null)
+    .Select(material => new MaterialDTO
+    {
+        Id = material.Id,
+        MaterialTypeId = material.MaterialTypeId,
+        MaterialName = material.MaterialName,
+        MaterialType = new MaterialTypeDTO 
+            {
+                Id = material.MaterialType.Id, 
+                Name = material.MaterialType.Name, 
+                CheckoutDays = material.MaterialType.CheckoutDays
+            },
+        GenreId = material.GenreId,
+        Genre = new GenreDTO 
+            {
+                Id = material.Genre.Id,
+                Name = material.Genre.Name
+            },
+        
+    });
+});
 
 
 app.Run();
