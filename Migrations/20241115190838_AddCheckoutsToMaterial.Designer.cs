@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LoncotesLibrary.Migrations
 {
     [DbContext(typeof(LoncotesLibraryDbContext))]
-    partial class LoncotesLibraryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241115190838_AddCheckoutsToMaterial")]
+    partial class AddCheckoutsToMaterial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -293,13 +296,13 @@ namespace LoncotesLibrary.Migrations
             modelBuilder.Entity("LoncotesLibrary.Models.Checkout", b =>
                 {
                     b.HasOne("LoncotesLibrary.Models.Material", "Material")
-                        .WithMany("Checkouts")
+                        .WithMany()
                         .HasForeignKey("MaterialId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("LoncotesLibrary.Models.Patron", "Patron")
-                        .WithMany("Checkouts")
+                        .WithMany()
                         .HasForeignKey("PatronId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -326,16 +329,6 @@ namespace LoncotesLibrary.Migrations
                     b.Navigation("Genre");
 
                     b.Navigation("MaterialType");
-                });
-
-            modelBuilder.Entity("LoncotesLibrary.Models.Material", b =>
-                {
-                    b.Navigation("Checkouts");
-                });
-
-            modelBuilder.Entity("LoncotesLibrary.Models.Patron", b =>
-                {
-                    b.Navigation("Checkouts");
                 });
 #pragma warning restore 612, 618
         }
