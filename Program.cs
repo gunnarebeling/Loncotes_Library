@@ -168,7 +168,7 @@ app.MapGet("/api/patrons/{id}", (LoncotesLibraryDbContext db, int id) =>
     .Include(p => p.Checkouts)
     .ThenInclude(c => c.Material)
     .ThenInclude(m => m.MaterialType)
-    .Select(p => new PatronDTO 
+    .Select(p => new PatronLateFeeDTO 
     {
         Id = p.Id,
         FirstName = p.FirstName,
@@ -176,10 +176,11 @@ app.MapGet("/api/patrons/{id}", (LoncotesLibraryDbContext db, int id) =>
         Address = p.Address,
         Email = p.Email,
         IsActive = p.IsActive,
-        Checkouts = p.Checkouts.Select(c => new CheckoutDTO 
+        Checkouts = p.Checkouts.Select(c => new CheckoutLateFeeDTO 
         {
             Id = c.Id,
             CheckoutDate = c.CheckoutDate,
+            PatronId = c.PatronId,
             Material = new MaterialDTO { 
                 Id = c.Material.Id, 
                 MaterialName = c.Material.MaterialName, 
@@ -269,7 +270,46 @@ app.MapGet("/api/Materials/available", (LoncotesLibraryDbContext db) =>
     }).ToList();
 });
 
-
+app.MapGet("/api/checkouts/overdue", (LoncotesLibraryDbContext db) => 
+{
+    return db.Checkouts
+    .Where(c => c.ReturnDate == null)
+    .Include(c => c.Material)
+    .ThenInclude(m => m.MaterialType)
+    .Where(c => c.CheckoutDate.AddDays(c.Material.MaterialType.CheckoutDays) < DateTime.Today)
+    .Select(co => new CheckoutLateFeeDTO
+    {
+            Id = co.Id,
+            MaterialId = co.MaterialId,
+            Material = new MaterialDTO
+            {
+                Id = co.Material.Id,
+                MaterialName = co.Material.MaterialName,
+                MaterialTypeId = co.Material.MaterialTypeId,
+                MaterialType = new MaterialTypeDTO
+                {
+                    Id = co.Material.MaterialTypeId,
+                    Name = co.Material.MaterialType.Name,
+                    CheckoutDays = co.Material.MaterialType.CheckoutDays
+                },
+                GenreId = co.Material.GenreId,
+                OutOfCirculationSince = co.Material.OutOfCirculationSince
+            },
+            PatronId = co.PatronId,
+            Patron = new PatronDTO
+            {
+                Id = co.Patron.Id,
+                FirstName = co.Patron.FirstName,
+                LastName = co.Patron.LastName,
+                Address = co.Patron.Address,
+                Email = co.Patron.Email,
+                IsActive = co.Patron.IsActive
+            },
+            CheckoutDate = co.CheckoutDate,
+            ReturnDate = co.ReturnDate,
+            
+        });
+});
 
 
 app.Run();
