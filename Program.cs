@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors();
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -24,6 +25,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors(options =>
+                {
+                    options.AllowAnyOrigin();
+                    options.AllowAnyMethod();
+                    options.AllowAnyHeader();
+                });
 }
 
 app.UseHttpsRedirection();
@@ -81,10 +88,25 @@ app.MapGet("/api/materials/{id}", (LoncotesLibraryDbContext db, int id) =>
         MaterialTypeId = m.MaterialTypeId,
         MaterialType = new MaterialTypeDTO { Id = m.MaterialType.Id, Name = m.MaterialType.Name, CheckoutDays = m.MaterialType.CheckoutDays},
         OutOfCirculationSince = m.OutOfCirculationSince,
-        Checkouts = m.Checkouts.Select(c => new CheckoutDTO
+        Checkouts = m.Checkouts.Select(c => new CheckoutLateFeeDTO
             {
                 Id = c.Id,
                 PatronId = c.PatronId,
+                MaterialId = c.MaterialId,
+                Material = new MaterialDTO
+                {
+                    Id = c.Material.Id,
+                    MaterialName = c.Material.MaterialName,
+                    MaterialTypeId = c.Material.MaterialTypeId,
+                    MaterialType = new MaterialTypeDTO
+                    {
+                        Id = c.Material.MaterialTypeId,
+                        Name = c.Material.MaterialType.Name,
+                        CheckoutDays = c.Material.MaterialType.CheckoutDays
+                    },
+                    GenreId = c.Material.GenreId,
+                    OutOfCirculationSince = c.Material.OutOfCirculationSince
+                },
                 Patron = new PatronDTO 
                 {
                     Id = c.Patron.Id,
@@ -95,7 +117,8 @@ app.MapGet("/api/materials/{id}", (LoncotesLibraryDbContext db, int id) =>
                     IsActive = c.Patron.IsActive
 
                 },
-                CheckoutDate = c.CheckoutDate
+                CheckoutDate = c.CheckoutDate,
+                ReturnDate = c.ReturnDate
                 
 
             }).ToList()

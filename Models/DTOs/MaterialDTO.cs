@@ -12,5 +12,5 @@ public class MaterialDTO
     public int GenreId {get; set;}
     public GenreDTO Genre {get; set;}
     public DateTime? OutOfCirculationSince {get; set;}
-    public List<CheckoutDTO> Checkouts {get; set;}
+    public List<CheckoutLateFeeDTO> Checkouts {get; set;}
 }
